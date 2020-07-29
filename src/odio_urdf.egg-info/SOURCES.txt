@@ -1,0 +1,8 @@
+README.md
+setup.py
+src/odio_urdf/__init__.py
+src/odio_urdf/__main__.py
+src/odio_urdf.egg-info/PKG-INFO
+src/odio_urdf.egg-info/SOURCES.txt
+src/odio_urdf.egg-info/dependency_links.txt
+src/odio_urdf.egg-info/top_level.txt

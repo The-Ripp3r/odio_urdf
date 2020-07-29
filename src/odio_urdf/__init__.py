@@ -161,7 +161,7 @@ class Element(list):
     def __repr__(self):
         return self.urdf(0)
 
-    special_names = {"transjoint": "joint"}
+    special_names = {"transjoint": "joint","visual2": "visual", "lam": "lambda"}
     def urdf(self,depth=0):
         name = type(self).__name__.lower()
         if name in self.special_names: name = self.special_names[name]
@@ -171,10 +171,11 @@ class Element(list):
                 to_insert = str(getattr(self,attr))
                 if isinstance(to_insert,tuple):
                     to_insert = str(to_insert).strip('(').strip(')').replace(',','')
-               
+                if attr in self.special_names: attr = self.special_names[attr] 
                 s+= ' '+str(attr)+'="'+eval_macros(to_insert,Element.string_macros)+'" '
             #Flag required but unnamed attributes
             for attr in set(type(self).required_attributes).difference(self.attributes):
+                if attr in self.special_names: attr = self.special_names[attr] 
                 s+= ' '+str(attr)+'="'+"UNNAMED_"+str(Element.element_counter)+'" '
                 Element.element_counter += 1
         if len(self) == 0 and self.xmltext == "":
@@ -230,7 +231,7 @@ class Xacroif(Element):
 class Group(Element):
     counter = 0
     required_elements = []
-    allowed_elements = ['Joint','Link','Material','Transmission','Gazebo']
+    allowed_elements = ['Joint','Link','Material','Transmission','Gazebo', 'Deformable']
     required_attributes = []
     allowed_attributes = ['name']
     
@@ -240,7 +241,7 @@ class Group(Element):
 class Robot(Element):
     counter = 0
     required_elements = []
-    allowed_elements = ['Joint','Link','Material','Transmission','Gazebo']
+    allowed_elements = ['Joint','Link','Material','Transmission','Gazebo', 'Deformable']
     required_attributes = ['name']
     allowed_attributes = ['name']
     
@@ -276,7 +277,6 @@ class Joint(Element):
 
         super(Joint, self).__init__(*args,**kwargs)
 
-     
 class Link(Element):
     counter = 0
     required_elements = []
@@ -285,6 +285,66 @@ class Link(Element):
     allowed_attributes = ['name'] 
     def __init__(self, *args, **kwargs):
         super(Link, self).__init__(*args,**kwargs)
+
+class Deformable(Element):
+    counter = 0
+    required_elements = ['Inertial', 'Visual2'] #to prevent error, to prevent simulator crash collision margin and neohookean should be added as well
+    allowed_elements = ['Inertial','Collision_margin','Repulsion_Stiffness','Friction', 'Neohookean', 'Visual2']
+    required_attributes = ['name']
+    allowed_attributes = ['name'] 
+    def __init__(self, *args, **kwargs):
+        super(Deformable, self).__init__(*args,**kwargs)
+
+class Collision_margin(Element):
+    required_elements = []
+    allowed_elements = []
+    required_attributes = []
+    allowed_attributes = ['value']  
+     
+    def __init__(self, *args, **kwargs):
+
+        super(Collision_margin, self).__init__(*args,**kwargs)
+
+class Repulsion_Stiffness(Element):
+    required_elements = []
+    allowed_elements = []
+    required_attributes = []
+    allowed_attributes = ['value']  
+     
+    def __init__(self, *args, **kwargs):
+
+        super(Repulsion_Stiffness, self).__init__(*args,**kwargs)
+
+class Friction(Element):
+    required_elements = []
+    allowed_elements = []
+    required_attributes = []
+    allowed_attributes = ['value']  
+     
+    def __init__(self, *args, **kwargs):
+
+        super(Friction, self).__init__(*args,**kwargs)
+
+class Neohookean(Element):
+    required_elements = []
+    allowed_elements = []
+    required_attributes = [] #maybe
+    allowed_attributes = ['mu','lam','damping']  
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0],list):
+            if len(args[0]) == 3:
+                kwargs["mu"]=str(args[0][0])
+                kwargs["lam"]=str(args[0][1])
+                kwargs["damping"]=str(args[0][2])
+        super(Neohookean, self).__init__(**kwargs)
+
+class Visual2(Element):
+    required_elements = []
+    allowed_elements = []
+    required_attributes = ['filename']
+    allowed_attributes = ['filename']       
+    def __init__(self, *args, **kwargs):
+        super(Visual2, self).__init__(*args,**kwargs)
 
 class Transmission(Element):
     counter = 0
@@ -831,7 +891,22 @@ if __name__ == "__main__":
         Collision,
         name="test"
         )
+
+    myRobot2 = Deformable(
+        Inertial(
+            Origin(xyz=(0,0,0.5), rpy=(0,0,0)),
+            Mass(value=1),
+            Inertia(ixx=100, ixy=0),
+        ),
+        Visual2(filename="torus.vtk"),
+        Collision_margin(value = 0.006),
+        Repulsion_Stiffness(value = 800.0),
+        Friction(value = 0.5),
+        Neohookean(mu=200.0, lam = 200.0, damping=0.01),
+        name="practice"
+        )
     
+    print(myRobot2)
     print(Origin([2,3,4]))
     print(Origin([7,8,6,7,5,4]))
     print(Inertia([1,2,3,4,4,2]))
