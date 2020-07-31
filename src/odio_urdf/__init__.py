@@ -346,6 +346,14 @@ class Visual2(Element):
     def __init__(self, *args, **kwargs):
         super(Visual2, self).__init__(*args,**kwargs)
 
+class Contact_coefficients(Element):
+    required_elements = []
+    allowed_elements = []
+    required_attributes = ['mu', 'kp', 'kd']
+    allowed_attributes = ['mu', 'kp', 'kd']       
+    def __init__(self, *args, **kwargs):
+        super(Contact_coefficients, self).__init__(*args,**kwargs)
+
 class Transmission(Element):
     counter = 0
     required_elements = []
@@ -548,7 +556,7 @@ class Texture(Element):
         
 class Collision(Element):
     required_elements = []
-    allowed_elements = ['Origin','Geometry','Material']
+    allowed_elements = ['Origin','Geometry','Material', 'Contact_coefficients']
     required_attributes = []
     allowed_attributes = ['name']  
      
@@ -888,7 +896,7 @@ if __name__ == "__main__":
             Inertia(ixx=100, ixy=0),
         ),
         Visual,
-        Collision,
+        Collision(Contact_coefficients(mu=0.1, kp=0.5, kd=0.5)),
         name="test"
         )
 
@@ -906,7 +914,7 @@ if __name__ == "__main__":
         name="practice"
         )
     
-    print(myRobot2)
+    print(myRobot)
     print(Origin([2,3,4]))
     print(Origin([7,8,6,7,5,4]))
     print(Inertia([1,2,3,4,4,2]))
